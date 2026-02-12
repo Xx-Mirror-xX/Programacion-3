@@ -1,3 +1,5 @@
+const API_URL = window.location.origin;
+
 let currentView = 'all';
 let cartItems = [];
 let currentUserId = null;
@@ -11,10 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
         
-        const res = await fetch("http://localhost:4000/api/verify", {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+        const res = await fetch(`${API_URL}/api/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
         
@@ -32,33 +32,29 @@ document.addEventListener("DOMContentLoaded", async () => {
             loadCart();
             setupEventListeners();
             setupLogoutButton();
-            setupCartButton(); // Nueva función para el botón del carrito
+            setupCartButton();
         } else {
             localStorage.removeItem("token");
             localStorage.removeItem("currentUser");
             window.location.href = "/";
         }
     } catch (error) {
+        console.error("Error en la inicialización:", error);
         window.location.href = "/";
     }
 });
 
-// ========== FUNCIÓN PARA CERRAR SESIÓN ==========
+
 function setupLogoutButton() {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
-        const newLogoutBtn = logoutBtn.cloneNode(true);
-        logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
-        
-        newLogoutBtn.addEventListener("click", async (e) => {
+        logoutBtn.addEventListener("click", async (e) => {
             e.preventDefault();
             try {
                 const token = localStorage.getItem("token");
-                await fetch("http://localhost:4000/api/logout", {
+                await fetch(`${API_URL}/api/logout`, {
                     method: "POST",
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     credentials: 'include'
                 });
             } catch (error) {
@@ -72,7 +68,6 @@ function setupLogoutButton() {
     }
 }
 
-// ========== FUNCIONES DEL BOTÓN DE CARRITO Y MODAL ==========
 function setupCartButton() {
     const cartBtn = document.getElementById("cart-floating-btn");
     const cartModal = document.getElementById("cart-modal");
@@ -90,7 +85,6 @@ function setupCartButton() {
         });
     }
     
-    // Cerrar modal al hacer clic fuera del contenido
     window.addEventListener("click", (e) => {
         if (e.target === cartModal) {
             closeCartModal();
@@ -100,15 +94,19 @@ function setupCartButton() {
 
 function openCartModal() {
     const cartModal = document.getElementById("cart-modal");
-    cartModal.style.display = "block";
-    document.body.style.overflow = "hidden"; // Prevenir scroll
-    displayModalCart(); // Mostrar el carrito en el modal
+    if (cartModal) {
+        cartModal.style.display = "block";
+        document.body.style.overflow = "hidden";
+        displayModalCart();
+    }
 }
 
 function closeCartModal() {
     const cartModal = document.getElementById("cart-modal");
-    cartModal.style.display = "none";
-    document.body.style.overflow = "auto"; // Restaurar scroll
+    if (cartModal) {
+        cartModal.style.display = "none";
+        document.body.style.overflow = "auto";
+    }
 }
 
 function displayModalCart() {
@@ -117,19 +115,20 @@ function displayModalCart() {
     const totalElement = document.getElementById("modal-cart-total");
     const cartCount = document.getElementById("cart-count");
     
-    // Actualizar contador del botón flotante
     if (cartCount) {
         cartCount.textContent = cartItems.length || 0;
     }
     
     if (!cartItems || cartItems.length === 0) {
-        container.innerHTML = `
-            <div class="modal-empty-cart-message">
-                <span>🍞</span>
-                Tu carrito está vacío<br>
-                <small style="font-size: 13px; color: #95a5a6;">Agrega algunos panes deliciosos</small>
-            </div>
-        `;
+        if (container) {
+            container.innerHTML = `
+                <div class="modal-empty-cart-message">
+                    <span>🍞</span>
+                    Tu carrito está vacío<br>
+                    <small style="font-size: 13px; color: #95a5a6;">Agrega algunos panes deliciosos</small>
+                </div>
+            `;
+        }
         if (footer) footer.style.display = "none";
         return;
     }
@@ -146,7 +145,7 @@ function displayModalCart() {
                 <div class="modal-cart-item-info">
                     <div class="modal-cart-item-icon">🍞</div>
                     <div class="modal-cart-item-details">
-                        <div class="modal-cart-item-name">${item.product_name}</div>
+                        <div class="modal-cart-item-name">${escapeHTML(item.product_name)}</div>
                         <div class="modal-cart-item-code">${item.product_code}</div>
                     </div>
                 </div>
@@ -169,6 +168,16 @@ function displayModalCart() {
         footer.style.display = "flex";
         totalElement.textContent = total.toFixed(2);
     }
+}
+
+function escapeHTML(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function setupEventListeners() {
@@ -223,14 +232,12 @@ function setupEventListeners() {
     }
 }
 
-// ========== FUNCIONES DEL CARRITO ==========
+
 async function loadCart() {
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:4000/api/cart/items", {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+        const res = await fetch(`${API_URL}/api/cart/items`, {
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
         
@@ -238,8 +245,8 @@ async function loadCart() {
         
         if (data.success) {
             cartItems = data.items || [];
-            displayModalCart(); // Actualizar el modal si está abierto
-            updateCartCount(); // Actualizar contador flotante
+            displayModalCart();
+            updateCartCount();
         }
     } catch (error) {
         console.error("Error al cargar carrito:", error);
@@ -256,7 +263,7 @@ function updateCartCount() {
 async function addToCart(productId) {
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:4000/api/cart/add", {
+        const res = await fetch(`${API_URL}/api/cart/add`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -270,7 +277,7 @@ async function addToCart(productId) {
         
         if (data.success) {
             showNotification("✅ Pan agregado al carrito", "success");
-            await loadCart(); // Recargar carrito y esperar
+            await loadCart();
         } else {
             showNotification(data.error || "Error al agregar al carrito", "error");
         }
@@ -284,7 +291,7 @@ async function updateQuantity(itemId, newQuantity) {
     
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:4000/api/cart/update", {
+        const res = await fetch(`${API_URL}/api/cart/update`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -297,7 +304,7 @@ async function updateQuantity(itemId, newQuantity) {
         const data = await res.json();
         
         if (data.success) {
-            await loadCart(); // Recargar carrito y esperar
+            await loadCart();
         }
     } catch (error) {
         console.error("Error al actualizar cantidad:", error);
@@ -307,11 +314,9 @@ async function updateQuantity(itemId, newQuantity) {
 async function removeFromCart(itemId) {
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:4000/api/cart/item/${itemId}`, {
+        const res = await fetch(`${API_URL}/api/cart/item/${itemId}`, {
             method: "DELETE",
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
         
@@ -319,7 +324,7 @@ async function removeFromCart(itemId) {
         
         if (data.success) {
             showNotification("✅ Producto eliminado del carrito", "success");
-            await loadCart(); // Recargar carrito y esperar
+            await loadCart();
         }
     } catch (error) {
         showNotification("Error al eliminar", "error");
@@ -331,11 +336,9 @@ async function clearCart() {
     
     try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:4000/api/cart/clear", {
+        const res = await fetch(`${API_URL}/api/cart/clear`, {
             method: "DELETE",
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
         
@@ -343,21 +346,21 @@ async function clearCart() {
         
         if (data.success) {
             showNotification("🔄 Carrito vaciado", "success");
-            await loadCart(); // Recargar carrito y esperar
-            closeCartModal(); // Opcional: cerrar modal después de vaciar
+            await loadCart();
+            closeCartModal();
         }
     } catch (error) {
         showNotification("Error al vaciar carrito", "error");
     }
 }
 
-// ========== FUNCIONES DE PRODUCTOS ==========
+
 async function loadAllProducts() {
     const container = document.getElementById("products-container");
     container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 80px;"><span style="font-size: 60px; animation: girarPan 6s linear infinite; display: inline-block;">🍞</span><br><span style="color: #7f8c8d; font-size: 16px; margin-top: 20px; display: block;">Cargando panes...</span></div>';
     
     try {
-        const res = await fetch("http://localhost:4000/api/products", {
+        const res = await fetch(`${API_URL}/api/products`, {
             credentials: 'include'
         });
         
@@ -378,7 +381,7 @@ async function searchProductByCode(codigo) {
     container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 80px;"><span style="font-size: 50px; animation: girarPan 6s linear infinite; display: inline-block;">🔍</span><br><span style="color: #7f8c8d; font-size: 16px; margin-top: 20px; display: block;">Buscando pan...</span></div>';
     
     try {
-        const res = await fetch(`http://localhost:4000/api/products/codigo/${codigo}`, {
+        const res = await fetch(`${API_URL}/api/products/codigo/${codigo}`, {
             credentials: 'include'
         });
         
@@ -407,10 +410,10 @@ function displayProducts(products) {
                     <span>🍞</span>
                 </div>
                 <div class="product-info">
-                    <div class="product-code">${product.codigo}</div>
-                    <div class="product-name">${product.nombre}</div>
+                    <div class="product-code">${escapeHTML(product.codigo)}</div>
+                    <div class="product-name">${escapeHTML(product.nombre)}</div>
                     <div class="product-price">${parseFloat(product.precio).toFixed(2)}</div>
-                    <div class="product-description">${product.descripcion || 'Pan artesanal de primera calidad'}</div>
+                    <div class="product-description">${escapeHTML(product.descripcion) || 'Pan artesanal de primera calidad'}</div>
                     <div class="product-footer">
                         <span class="product-date">📅 ${new Date(product.created_at).toLocaleDateString('es-ES')}</span>
                         <button onclick="addToCart(${product.id})" class="add-to-cart-btn">
@@ -443,11 +446,11 @@ function displaySingleProduct(product) {
                 <div style="display: flex; flex-direction: column; gap: 20px;">
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
                         <div style="color: #95a5a6; font-size: 12px; font-weight: 600; margin-bottom: 6px;">CÓDIGO DEL PAN</div>
-                        <div style="font-size: 18px; color: #2c3e50; font-weight: 700;">${product.codigo}</div>
+                        <div style="font-size: 18px; color: #2c3e50; font-weight: 700;">${escapeHTML(product.codigo)}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
                         <div style="color: #95a5a6; font-size: 12px; font-weight: 600; margin-bottom: 6px;">NOMBRE DEL PAN</div>
-                        <div style="font-size: 22px; color: #2c3e50; font-weight: 700;">${product.nombre}</div>
+                        <div style="font-size: 22px; color: #2c3e50; font-weight: 700;">${escapeHTML(product.nombre)}</div>
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
                         <div style="color: #95a5a6; font-size: 12px; font-weight: 600; margin-bottom: 6px;">PRECIO</div>
@@ -455,7 +458,7 @@ function displaySingleProduct(product) {
                     </div>
                     <div style="background: #f8f9fa; padding: 20px; border-radius: 12px;">
                         <div style="color: #95a5a6; font-size: 12px; font-weight: 600; margin-bottom: 6px;">DESCRIPCIÓN</div>
-                        <div style="font-size: 15px; color: #2c3e50;">${product.descripcion || 'Pan artesanal de primera calidad'}</div>
+                        <div style="font-size: 15px; color: #2c3e50;">${escapeHTML(product.descripcion) || 'Pan artesanal de primera calidad'}</div>
                     </div>
                     <button onclick="addToCart(${product.id})" class="add-to-cart-btn" style="margin-top: 20px; width: 100%; justify-content: center; padding: 15px;">
                         🛒 AGREGAR ESTE PAN AL CARRITO
@@ -466,7 +469,7 @@ function displaySingleProduct(product) {
     `;
 }
 
-// ========== FUNCIONES UTILITARIAS ==========
+
 function showNotification(message, type) {
     const notification = document.createElement('div');
     notification.style.cssText = `
@@ -492,9 +495,11 @@ function showNotification(message, type) {
     }, 3000);
 }
 
-// Hacer funciones globales
+
 window.loadAllProducts = loadAllProducts;
 window.addToCart = addToCart;
 window.updateQuantity = updateQuantity;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
+window.openCartModal = openCartModal;
+window.closeCartModal = closeCartModal;
