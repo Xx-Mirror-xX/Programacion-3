@@ -1,3 +1,5 @@
+const API_URL = window.location.origin;
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         const token = localStorage.getItem("adminToken");
@@ -7,10 +9,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
         
-        const res = await fetch("http://localhost:4000/api/admin/verify", {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+        const res = await fetch(`${API_URL}/api/admin/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
         
@@ -31,13 +31,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             loadTotalProducts();
             setupCreateProduct();
-            addActivityLog(`✨ ${admin.username} inició sesión como admin`);
+            addActivityLog(`🥖 ${admin.username} encendió el horno`);
+            
+            const avatar = document.getElementById('corporate-avatar');
+            if (avatar && admin.username) {
+                avatar.textContent = admin.username.charAt(0).toUpperCase();
+            }
         } else {
             localStorage.removeItem("adminToken");
             localStorage.removeItem("currentAdmin");
             window.location.href = "/loginadmin";
         }
     } catch (error) {
+        console.error("Error al verificar admin:", error);
         localStorage.removeItem("adminToken");
         localStorage.removeItem("currentAdmin");
         window.location.href = "/loginadmin";
@@ -46,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadTotalProducts() {
     try {
-        const res = await fetch("http://localhost:4000/api/products", {
+        const res = await fetch(`${API_URL}/api/products`, {
             credentials: 'include'
         });
         
@@ -57,7 +63,7 @@ async function loadTotalProducts() {
             totalProductsEl.textContent = data.products.length || 0;
         }
     } catch (error) {
-        console.error('Error loading total products:', error);
+        console.error('Error cargando productos:', error);
     }
 }
 
@@ -71,9 +77,9 @@ function addActivityLog(message) {
     const activityItem = document.createElement('div');
     activityItem.className = 'activity-item';
     activityItem.innerHTML = `
-        <div class="activity-icon">✨</div>
+        <div class="activity-icon">🥖</div>
         <div class="activity-content">
-            <div class="activity-text">${message}</div>
+            <div class="activity-text">${escapeHTML(message)}</div>
             <div class="activity-time">${timeString}</div>
         </div>
     `;
@@ -83,6 +89,16 @@ function addActivityLog(message) {
     if (activityFeed.children.length > 5) {
         activityFeed.removeChild(activityFeed.lastChild);
     }
+}
+
+function escapeHTML(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function setupCreateProduct() {
@@ -96,13 +112,13 @@ function setupCreateProduct() {
     if (createBtn) {
         createBtn.addEventListener("click", async () => {
             if (!codigo.value.trim()) {
-                showMessage("📌 El código del producto es obligatorio", "error");
+                showMessage("📌 El código del pan es obligatorio", "error");
                 codigo.focus();
                 return;
             }
             
             if (!nombre.value.trim()) {
-                showMessage("🏷️ El nombre del producto es obligatorio", "error");
+                showMessage("🏷️ El nombre del pan es obligatorio", "error");
                 nombre.focus();
                 return;
             }
@@ -117,9 +133,9 @@ function setupCreateProduct() {
             
             try {
                 createBtn.disabled = true;
-                createBtn.innerHTML = '<span>🍞</span> PROCESANDO... <span>✨</span>';
+                createBtn.innerHTML = '<span>🥖</span> HORNEANDO... <span>⏳</span>';
                 
-                const res = await fetch("http://localhost:4000/api/products", {
+                const res = await fetch(`${API_URL}/api/products`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -137,8 +153,8 @@ function setupCreateProduct() {
                 const data = await res.json();
                 
                 if (data.success) {
-                    showMessage(`✅ Producto ${codigo.value.trim()} registrado exitosamente`, "success");
-                    addActivityLog(`📦 ${nombre.value.trim()} agregado al catálogo`);
+                    showMessage(`✅ Pan ${codigo.value.trim()} horneado exitosamente`, "success");
+                    addActivityLog(`🍞 ${nombre.value.trim()} agregado al menú`);
                     
                     codigo.value = "";
                     nombre.value = "";
@@ -147,13 +163,13 @@ function setupCreateProduct() {
                     
                     loadTotalProducts();
                 } else {
-                    showMessage(data.error || "Error al registrar producto", "error");
+                    showMessage(data.error || "Error al hornear el pan", "error");
                 }
             } catch (error) {
-                showMessage("Error de conexión con el servidor", "error");
+                showMessage("Error de conexión con el horno", "error");
             } finally {
                 createBtn.disabled = false;
-                createBtn.innerHTML = '<span>🍞</span> REGISTRAR PRODUCTO <span>✨</span>';
+                createBtn.innerHTML = '<span>🥖</span> REGISTRAR NUEVO PAN <span>✨</span>';
             }
         });
     }
@@ -162,6 +178,7 @@ function setupCreateProduct() {
         if (messageDiv) {
             messageDiv.textContent = text;
             messageDiv.className = `corporate-message ${type}`;
+            messageDiv.style.display = "block";
             
             setTimeout(() => {
                 messageDiv.style.display = "none";
@@ -172,16 +189,32 @@ function setupCreateProduct() {
 
 document.querySelector("#logout-btn")?.addEventListener("click", async () => {
     try {
-        await fetch("http://localhost:4000/api/admin/logout", {
+        const token = localStorage.getItem("adminToken");
+        await fetch(`${API_URL}/api/admin/logout`, {
             method: "POST",
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem("adminToken")}`
-            },
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: 'include'
         });
-    } catch (error) {}
-    
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("currentAdmin");
-    window.location.href = "/loginadmin";
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+    } finally {
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("currentAdmin");
+        window.location.href = "/loginadmin";
+    }
 });
+
+
+function updateTime() {
+    const timeElement = document.getElementById('current-time');
+    if (timeElement) {
+        const now = new Date();
+        timeElement.textContent = now.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+}
+
+setInterval(updateTime, 1000);
