@@ -2,40 +2,40 @@ import { getCartDB } from '../database/cart.db.js';
 import { getProductsDB } from '../database/products.db.js';
 
 export const cartMethods = {
-
+    // Obtener o crear carrito del usuario
     async getOrCreateCart(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
         
         try {
-
             db.get(
                 `SELECT * FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
                 [userId],
                 (err, cart) => {
                     if (err) {
+                        console.error('Error al obtener carrito:', err.message);
                         return res.status(500).json({ success: false, error: "Error al obtener carrito" });
                     }
                     
                     if (cart) {
-
                         db.all(
                             `SELECT * FROM cart_items WHERE cart_id = ?`,
                             [cart.id],
                             (err, items) => {
                                 if (err) {
+                                    console.error('Error al obtener items:', err.message);
                                     return res.status(500).json({ success: false, error: "Error al obtener items" });
                                 }
                                 res.json({ success: true, cartId: cart.id, items: items || [] });
                             }
                         );
                     } else {
-
                         db.run(
                             `INSERT INTO carts (user_id) VALUES (?)`,
                             [userId],
                             function(err) {
                                 if (err) {
+                                    console.error('Error al crear carrito:', err.message);
                                     return res.status(500).json({ success: false, error: "Error al crear carrito" });
                                 }
                                 res.json({ success: true, cartId: this.lastID, items: [] });
@@ -45,11 +45,12 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en getOrCreateCart:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
 
-
+    // Agregar producto al carrito
     async addToCart(req, res) {
         const { productId, quantity = 1 } = req.body;
         const userId = req.user.id;
@@ -62,54 +63,54 @@ export const cartMethods = {
         const productsDb = getProductsDB();
 
         try {
-
             productsDb.get(
                 `SELECT * FROM products WHERE id = ?`,
                 [productId],
                 (err, product) => {
                     if (err || !product) {
+                        console.error('Producto no encontrado:', err?.message);
                         return res.status(404).json({ success: false, error: "Producto no encontrado" });
                     }
-
 
                     cartDb.get(
                         `SELECT * FROM carts WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
                         [userId],
                         (err, cart) => {
                             if (err) {
+                                console.error('Error al obtener carrito:', err.message);
                                 return res.status(500).json({ success: false, error: "Error al obtener carrito" });
                             }
 
                             const processCart = (cartId) => {
-
                                 cartDb.get(
                                     `SELECT * FROM cart_items WHERE cart_id = ? AND product_id = ?`,
                                     [cartId, productId],
                                     (err, existingItem) => {
                                         if (err) {
+                                            console.error('Error al verificar item:', err.message);
                                             return res.status(500).json({ success: false, error: "Error al verificar item" });
                                         }
 
                                         if (existingItem) {
-
                                             cartDb.run(
                                                 `UPDATE cart_items SET quantity = quantity + ? WHERE id = ?`,
                                                 [quantity, existingItem.id],
                                                 function(err) {
                                                     if (err) {
+                                                        console.error('Error al actualizar cantidad:', err.message);
                                                         return res.status(500).json({ success: false, error: "Error al actualizar cantidad" });
                                                     }
                                                     res.json({ success: true, message: "Cantidad actualizada en el carrito" });
                                                 }
                                             );
                                         } else {
-
                                             cartDb.run(
                                                 `INSERT INTO cart_items (cart_id, product_id, product_code, product_name, product_price, quantity) 
                                                  VALUES (?, ?, ?, ?, ?, ?)`,
                                                 [cartId, productId, product.codigo, product.nombre, product.precio, quantity],
                                                 function(err) {
                                                     if (err) {
+                                                        console.error('Error al agregar al carrito:', err.message);
                                                         return res.status(500).json({ success: false, error: "Error al agregar al carrito" });
                                                     }
                                                     res.json({ success: true, message: "Producto agregado al carrito" });
@@ -128,6 +129,7 @@ export const cartMethods = {
                                     [userId],
                                     function(err) {
                                         if (err) {
+                                            console.error('Error al crear carrito:', err.message);
                                             return res.status(500).json({ success: false, error: "Error al crear carrito" });
                                         }
                                         processCart(this.lastID);
@@ -139,11 +141,12 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en addToCart:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
 
-
+    // Obtener items del carrito
     async getCartItems(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
@@ -154,6 +157,7 @@ export const cartMethods = {
                 [userId],
                 (err, cart) => {
                     if (err) {
+                        console.error('Error al obtener carrito:', err.message);
                         return res.status(500).json({ success: false, error: "Error al obtener carrito" });
                     }
 
@@ -166,6 +170,7 @@ export const cartMethods = {
                         [cart.id],
                         (err, items) => {
                             if (err) {
+                                console.error('Error al obtener items:', err.message);
                                 return res.status(500).json({ success: false, error: "Error al obtener items" });
                             }
 
@@ -176,11 +181,12 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en getCartItems:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
 
-
+    // Actualizar cantidad de un item
     async updateQuantity(req, res) {
         const { itemId, quantity } = req.body;
         const userId = req.user.id;
@@ -199,6 +205,7 @@ export const cartMethods = {
                 [itemId, userId],
                 (err, result) => {
                     if (err || !result) {
+                        console.error('Item no encontrado:', err?.message);
                         return res.status(404).json({ success: false, error: "Item no encontrado" });
                     }
 
@@ -207,6 +214,7 @@ export const cartMethods = {
                         [quantity, itemId],
                         function(err) {
                             if (err) {
+                                console.error('Error al actualizar cantidad:', err.message);
                                 return res.status(500).json({ success: false, error: "Error al actualizar cantidad" });
                             }
                             res.json({ success: true, message: "Cantidad actualizada" });
@@ -215,11 +223,12 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en updateQuantity:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
 
-
+    // Eliminar item del carrito
     async removeItem(req, res) {
         const { itemId } = req.params;
         const userId = req.user.id;
@@ -234,6 +243,7 @@ export const cartMethods = {
                 [itemId, userId],
                 (err, result) => {
                     if (err || !result) {
+                        console.error('Item no encontrado:', err?.message);
                         return res.status(404).json({ success: false, error: "Item no encontrado" });
                     }
 
@@ -242,6 +252,7 @@ export const cartMethods = {
                         [itemId],
                         function(err) {
                             if (err) {
+                                console.error('Error al eliminar item:', err.message);
                                 return res.status(500).json({ success: false, error: "Error al eliminar item" });
                             }
                             res.json({ success: true, message: "Producto eliminado del carrito" });
@@ -250,11 +261,12 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en removeItem:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
 
-
+    // Vaciar carrito
     async clearCart(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
@@ -265,6 +277,7 @@ export const cartMethods = {
                 [userId],
                 (err, cart) => {
                     if (err) {
+                        console.error('Error al obtener carrito:', err.message);
                         return res.status(500).json({ success: false, error: "Error al obtener carrito" });
                     }
 
@@ -274,6 +287,7 @@ export const cartMethods = {
                             [cart.id],
                             function(err) {
                                 if (err) {
+                                    console.error('Error al vaciar carrito:', err.message);
                                     return res.status(500).json({ success: false, error: "Error al vaciar carrito" });
                                 }
                                 res.json({ success: true, message: "Carrito vaciado" });
@@ -285,6 +299,7 @@ export const cartMethods = {
                 }
             );
         } catch (error) {
+            console.error('Error en clearCart:', error.message);
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     }
