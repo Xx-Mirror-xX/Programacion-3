@@ -1,3 +1,5 @@
+const API_URL = window.location.origin;
+
 document.getElementById("register-admin-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -8,10 +10,10 @@ document.getElementById("register-admin-form").addEventListener("submit", async 
     const submitBtn = document.querySelector("button[type='submit']");
     
     submitBtn.disabled = true;
-    submitBtn.textContent = "Registrando...";
+    submitBtn.textContent = "Registrando administrador...";
     
     try {
-        const res = await fetch("http://localhost:4000/api/admin/register", {
+        const res = await fetch(`${API_URL}/api/admin/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -22,7 +24,7 @@ document.getElementById("register-admin-form").addEventListener("submit", async 
         const data = await res.json();
         
         if (data.success) {
-            alert("Administrador registrado exitosamente. Por favor inicia sesión.");
+            alert("✅ Administrador registrado exitosamente. Por favor inicia sesión.");
             window.location.href = "/loginadmin";
         } else {
             errorElement.textContent = data.error || "Error al registrar administrador";
@@ -31,9 +33,23 @@ document.getElementById("register-admin-form").addEventListener("submit", async 
             submitBtn.textContent = "Registrar Administrador";
         }
     } catch (error) {
+        console.error("Error en registro admin:", error);
         errorElement.textContent = "Error de conexión con el servidor";
         errorElement.classList.remove("escondido");
         submitBtn.disabled = false;
         submitBtn.textContent = "Registrar Administrador";
     }
+});
+
+
+document.getElementById("user")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
+});
+
+document.getElementById("email")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
+});
+
+document.getElementById("password")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
 });
