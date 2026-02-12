@@ -1,3 +1,5 @@
+const API_URL = window.location.origin;
+
 document.getElementById("register-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -11,7 +13,7 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
     submitBtn.textContent = "Registrando...";
     
     try {
-        const res = await fetch("http://localhost:4000/api/register", {
+        const res = await fetch(`${API_URL}/api/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -22,7 +24,7 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
         const data = await res.json();
         
         if (data.success) {
-            alert("Usuario registrado exitosamente. Por favor inicia sesión.");
+            alert("✅ Usuario registrado exitosamente. Por favor inicia sesión.");
             window.location.href = "/";
         } else {
             errorElement.textContent = data.error || "Error al registrar usuario";
@@ -31,9 +33,23 @@ document.getElementById("register-form").addEventListener("submit", async (e) =>
             submitBtn.textContent = "Registrarse";
         }
     } catch (error) {
+        console.error("Error en registro:", error);
         errorElement.textContent = "Error de conexión con el servidor";
         errorElement.classList.remove("escondido");
         submitBtn.disabled = false;
         submitBtn.textContent = "Registrarse";
     }
+});
+
+
+document.getElementById("user")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
+});
+
+document.getElementById("email")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
+});
+
+document.getElementById("password")?.addEventListener("input", () => {
+    document.querySelector(".error")?.classList.add("escondido");
 });
