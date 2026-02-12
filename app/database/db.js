@@ -9,17 +9,10 @@ export function getDB() {
     if (!db) {
         try {
             const dbPath = process.env.USERS_DB_PATH || path.join(__dirname, '../data/users.db');
-            db = new sqlite3.Database(dbPath, (err) => {
-                if (err) {
-                    console.error('❌ Error conectando a DB de usuarios:', err.message);
-                    throw err;
-                }
-            });
-            
-            console.log(`✅ DB Usuarios lista: ${path.basename(dbPath)}`);
-            
+            db = new sqlite3.Database(dbPath);
+            console.log(`✅ DB Usuarios: ${path.basename(dbPath)}`);
         } catch (error) {
-            console.error('❌ Error fatal en DB de usuarios:', error.message);
+            console.error('❌ Error DB usuarios:', error.message);
             throw error;
         }
     }
