@@ -2,7 +2,7 @@ import { getCartDB } from '../database/cart.db.js';
 import { getProductsDB } from '../database/products.db.js';
 
 export const cartMethods = {
-    // Obtener o crear carrito del usuario
+
     async getOrCreateCart(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
@@ -49,8 +49,6 @@ export const cartMethods = {
             res.status(500).json({ success: false, error: "Error en el servidor" });
         }
     },
-
-    // Agregar producto al carrito
     async addToCart(req, res) {
         const { productId, quantity = 1 } = req.body;
         const userId = req.user.id;
@@ -146,7 +144,6 @@ export const cartMethods = {
         }
     },
 
-    // Obtener items del carrito
     async getCartItems(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
@@ -186,7 +183,6 @@ export const cartMethods = {
         }
     },
 
-    // Actualizar cantidad de un item
     async updateQuantity(req, res) {
         const { itemId, quantity } = req.body;
         const userId = req.user.id;
@@ -228,7 +224,6 @@ export const cartMethods = {
         }
     },
 
-    // Eliminar item del carrito
     async removeItem(req, res) {
         const { itemId } = req.params;
         const userId = req.user.id;
@@ -266,7 +261,6 @@ export const cartMethods = {
         }
     },
 
-    // Vaciar carrito
     async clearCart(req, res) {
         const userId = req.user.id;
         const db = getCartDB();
