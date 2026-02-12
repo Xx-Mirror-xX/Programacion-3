@@ -27,6 +27,7 @@ export const productsMethods = {
             [codigo.toUpperCase(), nombre, parseFloat(precio), descripcion || '', adminId],
             function(err) {
                 if (err) {
+                    console.error('Error al crear producto:', err.message);
                     if (err.message.includes('UNIQUE constraint failed')) {
                         return res.status(400).json({ 
                             success: false, 
@@ -56,6 +57,7 @@ export const productsMethods = {
             [],
             (err, rows) => {
                 if (err) {
+                    console.error('Error al obtener productos:', err.message);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error al obtener productos" 
@@ -79,6 +81,7 @@ export const productsMethods = {
             [id],
             (err, row) => {
                 if (err) {
+                    console.error('Error al obtener producto:', err.message);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error al obtener el producto" 
@@ -109,6 +112,7 @@ export const productsMethods = {
             [codigo.toUpperCase()],
             (err, row) => {
                 if (err) {
+                    console.error('Error al obtener producto:', err.message);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error al obtener el producto" 
@@ -153,6 +157,7 @@ export const productsMethods = {
             [nombre, precio, descripcion, id],
             function(err) {
                 if (err) {
+                    console.error('Error al actualizar producto:', err.message);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error al actualizar el producto" 
@@ -183,6 +188,7 @@ export const productsMethods = {
             [id],
             function(err) {
                 if (err) {
+                    console.error('Error al eliminar producto:', err.message);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error al eliminar el producto" 
