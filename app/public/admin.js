@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-
 function setupLogoutButton() {
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
@@ -114,6 +113,7 @@ function displayModalCart() {
     const footer = document.getElementById("cart-modal-footer");
     const totalElement = document.getElementById("modal-cart-total");
     const cartCount = document.getElementById("cart-count");
+    const payButton = document.getElementById("pay-btn");
     
     if (cartCount) {
         cartCount.textContent = cartItems.length || 0;
@@ -167,6 +167,7 @@ function displayModalCart() {
     if (footer) {
         footer.style.display = "flex";
         totalElement.textContent = total.toFixed(2);
+        if (payButton) payButton.style.display = "flex";
     }
 }
 
@@ -187,6 +188,7 @@ function setupEventListeners() {
     const searchBtn = document.getElementById("search-btn");
     const searchCode = document.getElementById("search-code");
     const modalClearCartBtn = document.getElementById("modal-clear-cart-btn");
+    const payBtn = document.getElementById("pay-btn");
     
     if (viewAllBtn) {
         viewAllBtn.addEventListener("click", () => {
@@ -230,8 +232,32 @@ function setupEventListeners() {
     if (modalClearCartBtn) {
         modalClearCartBtn.addEventListener("click", clearCart);
     }
+    
+    if (payBtn) {
+        payBtn.addEventListener("click", checkout);
+    }
 }
 
+async function checkout() {
+    if (!cartItems || cartItems.length === 0) {
+        showNotification("🛒 Tu carrito está vacío", "error");
+        return;
+    }
+    
+    try {
+        showNotification("🍞 ¡Gracias por su compra! Vuelva pronto", "success", 5000);
+        
+        await clearCart();
+        
+        setTimeout(() => {
+            closeCartModal();
+        }, 1500);
+        
+    } catch (error) {
+        console.error("Error al procesar el pago:", error);
+        showNotification("Error al procesar el pago", "error");
+    }
+}
 
 async function loadCart() {
     try {
@@ -332,8 +358,6 @@ async function removeFromCart(itemId) {
 }
 
 async function clearCart() {
-    if (!confirm("¿Estás seguro de vaciar tu carrito?")) return;
-    
     try {
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/api/cart/clear`, {
@@ -345,15 +369,15 @@ async function clearCart() {
         const data = await res.json();
         
         if (data.success) {
-            showNotification("🔄 Carrito vaciado", "success");
             await loadCart();
-            closeCartModal();
+            return true;
         }
+        return false;
     } catch (error) {
-        showNotification("Error al vaciar carrito", "error");
+        console.error("Error al vaciar carrito:", error);
+        return false;
     }
 }
-
 
 async function loadAllProducts() {
     const container = document.getElementById("products-container");
@@ -469,8 +493,7 @@ function displaySingleProduct(product) {
     `;
 }
 
-
-function showNotification(message, type) {
+function showNotification(message, type, duration = 3000) {
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -492,9 +515,8 @@ function showNotification(message, type) {
     
     setTimeout(() => {
         notification.remove();
-    }, 3000);
+    }, duration);
 }
-
 
 window.loadAllProducts = loadAllProducts;
 window.addToCart = addToCart;
@@ -503,3 +525,4 @@ window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
 window.openCartModal = openCartModal;
 window.closeCartModal = closeCartModal;
+window.checkout = checkout;
