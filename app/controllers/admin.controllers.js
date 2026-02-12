@@ -8,6 +8,11 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
+if (!JWT_SECRET) {
+    console.error('\n❌ ERROR CRÍTICO: JWT_SECRET no está definido en el archivo .env');
+    console.error('📌 Por favor, configura JWT_SECRET en las variables de entorno de Render\n');
+}
+
 export const methods = {
     async register(req, res) {
         const { user, email, password } = req.body;
@@ -29,6 +34,7 @@ export const methods = {
                 [user, email, hashedPassword, 'vip'],
                 function(err) {
                     if (err) {
+                        console.error('Error en registro admin:', err.message);
                         if (err.message.includes('UNIQUE constraint failed')) {
                             if (err.message.includes('username')) {
                                 return res.status(400).json({ 
@@ -56,6 +62,7 @@ export const methods = {
                 }
             );
         } catch (error) {
+            console.error('Error en registro admin:', error.message);
             res.status(500).json({ 
                 success: false, 
                 error: "Error en el servidor" 
@@ -75,66 +82,75 @@ export const methods = {
 
         const db = getAdminDB();
         
-        db.get(
-            "SELECT * FROM admin_users WHERE username = ? OR email = ?",
-            [user, user],
-            async (err, row) => {
-                if (err) {
-                    return res.status(500).json({ 
-                        success: false, 
-                        error: "Error en el servidor" 
-                    });
-                }
-                
-                if (!row) {
-                    return res.status(401).json({ 
-                        success: false, 
-                        error: "Credenciales de administrador incorrectas" 
-                    });
-                }
-                
-                const validPassword = await bcrypt.compare(password, row.password);
-                
-                if (!validPassword) {
-                    return res.status(401).json({ 
-                        success: false, 
-                        error: "Credenciales de administrador incorrectas" 
-                    });
-                }
-                
-                const token = jwt.sign(
-                    { 
-                        id: row.id, 
-                        username: row.username, 
-                        email: row.email,
-                        admin_level: row.admin_level,
-                        type: 'admin'
-                    },
-                    JWT_SECRET,
-                    { expiresIn: JWT_EXPIRES_IN }
-                );
-                
-                res.cookie('adminToken', token, {
-                    httpOnly: true,
-                    secure: false,
-                    sameSite: 'lax',
-                    maxAge: 24 * 60 * 60 * 1000
-                });
-                
-                res.json({ 
-                    success: true, 
-                    message: "Login de administrador exitoso",
-                    token,
-                    user: {
-                        id: row.id,
-                        username: row.username,
-                        email: row.email,
-                        admin_level: row.admin_level,
-                        type: 'admin'
+        try {
+            db.get(
+                "SELECT * FROM admin_users WHERE username = ? OR email = ?",
+                [user, user],
+                async (err, row) => {
+                    if (err) {
+                        console.error('Error en login admin:', err.message);
+                        return res.status(500).json({ 
+                            success: false, 
+                            error: "Error en el servidor" 
+                        });
                     }
-                });
-            }
-        );
+                    
+                    if (!row) {
+                        return res.status(401).json({ 
+                            success: false, 
+                            error: "Credenciales de administrador incorrectas" 
+                        });
+                    }
+                    
+                    const validPassword = await bcrypt.compare(password, row.password);
+                    
+                    if (!validPassword) {
+                        return res.status(401).json({ 
+                            success: false, 
+                            error: "Credenciales de administrador incorrectas" 
+                        });
+                    }
+                    
+                    const token = jwt.sign(
+                        { 
+                            id: row.id, 
+                            username: row.username, 
+                            email: row.email,
+                            admin_level: row.admin_level,
+                            type: 'admin'
+                        },
+                        JWT_SECRET,
+                        { expiresIn: JWT_EXPIRES_IN }
+                    );
+                    
+                    res.cookie('adminToken', token, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: 'lax',
+                        maxAge: 24 * 60 * 60 * 1000
+                    });
+                    
+                    res.json({ 
+                        success: true, 
+                        message: "Login de administrador exitoso",
+                        token,
+                        user: {
+                            id: row.id,
+                            username: row.username,
+                            email: row.email,
+                            admin_level: row.admin_level,
+                            type: 'admin'
+                        }
+                    });
+                }
+            );
+        } catch (error) {
+            console.error('Error en login admin:', error.message);
+            res.status(500).json({ 
+                success: false, 
+                error: "Error en el servidor" 
+            });
+        }
     },
 
     async logout(req, res) {
