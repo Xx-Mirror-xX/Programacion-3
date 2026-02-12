@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: tienda-de-panes
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
+    disk:
+      name: sqlite-data
+      mountPath: /opt/data
+      sizeGB: 1

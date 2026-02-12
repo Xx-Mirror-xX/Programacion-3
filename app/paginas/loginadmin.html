@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Administradores</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="../loginadmin.js" defer></script>
+</head>
+<body>
+    <button class="user-nav-btn" onclick="window.location.href='/'">👤 Acceso Usuarios</button>
+    <main>
+        <div class="form-container admin-form">
+            <h1>Panel de Administradores</h1>
+            <p>Ingrese sus credenciales de administrador</p>
+            <form id="login-admin-form">
+                <label for="user" class="sr-only">User</label>
+                <input type="text" name="user" id="user" placeholder="Usuario o email" required>
+
+                <label for="password" class="sr-only">Password</label>
+                <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                <button type="submit" class="admin-btn">Iniciar sesion</button>
+                <p class="error escondido">Error al iniciar sesion</p>
+            </form>
+            <p>Nuevo administrador? - <a href="/registeradmin">Registrate como admin</a></p>
+        </div>
+    </main>
+</body>
+</html>

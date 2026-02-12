@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiendas de panes muy serias - Catálogo</title>
+    <link rel="stylesheet" href="../../admin.css">
+    <script src="../../admin.js" defer></script>
+</head>
+<body class="admin-store">
+    <div class="store-wrapper">
+        <div class="store-header">
+            <div class="store-title">
+                <h1>🍞 TIENDAS DE PANES MUY SERIAS</h1>
+                <span class="store-badge">ARTESANAL</span>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar" id="user-avatar">👤</div>
+                <div class="user-info">
+                    <span class="user-name" id="welcome-message"></span>
+                    <span class="user-role">Catador de Panes</span>
+                </div>
+                <button id="logout-btn" class="store-logout-btn">CERRAR SESIÓN</button>
+            </div>
+        </div>
+
+
+        <div class="store-search-section">
+            <div class="store-search-header">
+                <h3>
+                    <span>🔍</span>
+                    BUSCAR PANES
+                </h3>
+                <div class="store-view-controls">
+                    <button id="view-all-btn" class="store-view-btn active">
+                        📋 TODOS LOS PANES
+                    </button>
+                    <button id="view-single-btn" class="store-view-btn">
+                        🔎 BUSCAR POR CÓDIGO
+                    </button>
+                </div>
+            </div>
+            
+            <div id="single-search" style="display: none;">
+                <div class="store-search-box">
+                    <input type="text" id="search-code" placeholder="Ingrese código del pan (Ej: PAN001)">
+                    <button id="search-btn">
+                        🔍 BUSCAR PAN
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+
+        <div id="products-container" class="store-products-grid"></div>
+    </div>
+
+
+    <button id="cart-floating-btn" class="cart-floating-btn">
+        🛒
+        <span id="cart-count" class="cart-count">0</span>
+    </button>
+
+
+    <div id="cart-modal" class="cart-modal">
+        <div class="cart-modal-content">
+            <div class="cart-modal-header">
+                <h2>
+                    <span>🛒</span>
+                    MI CARRITO DE PANES
+                </h2>
+                <button id="close-cart-btn" class="close-cart-btn">&times;</button>
+            </div>
+            <div class="cart-modal-body">
+                <div id="modal-cart-items" class="modal-cart-items">
+                    <div class="modal-empty-cart-message">
+                        <span>🍞</span>
+                        Tu carrito está vacío<br>
+                        <small style="font-size: 13px; color: #95a5a6;">Agrega algunos panes deliciosos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="cart-modal-footer" id="cart-modal-footer" style="display: none;">
+                <div class="modal-cart-total">
+                    <span class="cart-total-label">TOTAL:</span>
+                    <span class="cart-total-amount" id="modal-cart-total">0.00</span>
+                </div>
+                <button id="modal-clear-cart-btn" class="modal-clear-cart-btn">
+                    🗑️ VACIAR CARRITO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userData = localStorage.getItem('currentUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                const avatar = document.getElementById('user-avatar');
+                if (avatar && user.username) {
+                    avatar.textContent = user.username.charAt(0).toUpperCase();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

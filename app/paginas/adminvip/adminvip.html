@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expertos en panes - Gestión de Productos</title>
+    <link rel="stylesheet" href="../../admin.css">
+    <script src="../../adminvip.js" defer></script>
+</head>
+<body class="admin-corporate">
+    <div class="corporate-wrapper">
+        <div class="corporate-header">
+            <div class="corporate-title">
+                <h1>🥖 EXPERTOS EN PANES</h1>
+                <span class="corporate-badge">MAESTRO PANADERO</span>
+            </div>
+            
+            <div class="corporate-profile">
+                <div class="corporate-avatar" id="corporate-avatar">★</div>
+                <div class="corporate-info">
+                    <span class="corporate-name" id="welcome-message"></span>
+                    <span class="corporate-level">NIVEL: <span id="admin-level">VIP</span></span>
+                </div>
+                <button id="logout-btn" class="corporate-logout-btn">CERRAR SESIÓN</button>
+            </div>
+        </div>
+
+
+        <div class="corporate-dashboard">
+            <div class="corporate-card">
+                <div class="corporate-card-icon">
+                    <span>🥖</span>
+                </div>
+                <h4>PANES ACTIVOS</h4>
+                <p class="corporate-card-number" id="total-products">-</p>
+                <div class="corporate-card-footer">
+                    <span>▲ +12% este mes</span>
+                </div>
+            </div>
+            
+            <div class="corporate-card">
+                <div class="corporate-card-icon">
+                    <span>⭐</span>
+                </div>
+                <h4>MAESTRO PANADERO</h4>
+                <p class="corporate-card-number">VIP</p>
+                <div class="corporate-card-footer">
+                    <span>Acceso Premium</span>
+                </div>
+            </div>
+            
+            <div class="corporate-card">
+                <div class="corporate-card-icon">
+                    <span>⚡</span>
+                </div>
+                <h4>HORNEADOS HOY</h4>
+                <p class="corporate-card-number" id="total-operations">156</p>
+                <div class="corporate-card-footer">
+                    <span>Hoy: 23</span>
+                </div>
+            </div>
+            
+            <div class="corporate-card">
+                <div class="corporate-card-icon">
+                    <span>⏰</span>
+                </div>
+                <h4>HORNO ENCENDIDO</h4>
+                <p class="corporate-card-number" id="current-time">-</p>
+                <div class="corporate-card-footer">
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="corporate-form">
+            <div class="corporate-form-title">
+                <div class="corporate-form-icon">
+                    <span>🍞</span>
+                    <span style="color: #ffd700; font-size: 14px;">Nuevo Pan</span>
+                </div>
+            </div>
+            
+            <div class="corporate-form-grid">
+                <div class="corporate-form-group">
+                    <label>📌 CÓDIGO DEL PAN *</label>
+                    <input type="text" id="codigo" placeholder="Ej: PAN001" required>
+                    <small>Código único para el pan</small>
+                </div>
+                
+                <div class="corporate-form-group">
+                    <label>🏷️ NOMBRE DEL PAN *</label>
+                    <input type="text" id="nombre" placeholder="Ej: Pan de Masa Madre" required>
+                    <small>Máximo 100 caracteres</small>
+                </div>
+                
+                <div class="corporate-form-group">
+                    <label>💰 PRECIO *</label>
+                    <input type="number" id="precio" placeholder="Ej: 25.00" step="0.01" min="0.01" required>
+                    <small>Mínimo $0.01</small>
+                </div>
+                
+                <div class="corporate-form-group">
+                    <label>📝 DESCRIPCIÓN</label>
+                    <input type="text" id="descripcion" placeholder="Características del pan...">
+                    <small>Opcional</small>
+                </div>
+            </div>
+            
+            <button id="btn-create-product" class="corporate-btn">
+                <span>🥖</span>
+                REGISTRAR UN NUEVO PAN
+                <span>✨</span>
+            </button>
+            
+            <div id="product-message" class="corporate-message"></div>
+        </div>
+
+
+        <div class="corporate-activity">
+            <h3>
+                <span>📊</span>
+                PANES RECIENTES
+            </h3>
+            <div class="activity-list" id="activity-feed">
+                <div class="activity-item">
+                    <div class="activity-icon">🥖</div>
+                    <div class="activity-content">
+                        <div class="activity-text">Panadería iniciada</div>
+                        <div class="activity-time">HACE 1 MIN</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">★</div>
+                    <div class="activity-content">
+                        <div class="activity-text">Maestro panadero verificado</div>
+                        <div class="activity-time">HACE 1 MIN</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">✨</div>
+                    <div class="activity-content">
+                        <div class="activity-text">Horno conectado</div>
+                        <div class="activity-time">HACE 1 MIN</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                const now = new Date();
+                timeElement.textContent = now.toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            const adminData = localStorage.getItem('currentAdmin');
+            if (adminData) {
+                const admin = JSON.parse(adminData);
+                const avatar = document.getElementById('corporate-avatar');
+                if (avatar && admin.username) {
+                    avatar.textContent = admin.username.charAt(0).toUpperCase();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

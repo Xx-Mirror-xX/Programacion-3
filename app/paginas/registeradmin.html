@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Administradores</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="../registeradmin.js" defer></script>
+</head>
+<body>
+    <button class="user-nav-btn" onclick="window.location.href='/register'">👤 Registro Usuarios</button>
+    <main>
+        <div class="form-container admin-form">
+            <h1>👑 Crear cuenta de Administrador</h1>
+            <p>Ingrese los datos para generar una cuenta VIP</p>
+            <form id="register-admin-form">
+                <label for="user" class="sr-only">User</label>
+                <input type="text" name="user" id="user" placeholder="Nombre de usuario" required>
+
+                <label for="email" class="sr-only">Email</label>
+                <input type="email" name="email" id="email" placeholder="Correo Electronico" required>
+
+                <label for="password" class="sr-only">Password</label>
+                <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                <button type="submit" class="admin-btn">Registrar Administrador</button>
+                <p class="error escondido">Error al registrar administrador</p>
+            </form>
+            <p>Ya tienes cuenta de admin? - <a href="/loginadmin">Inicia sesion</a></p>
+        </div>
+    </main>
+</body>
+</html>
