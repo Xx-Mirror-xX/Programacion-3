@@ -19,21 +19,40 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isProduction = process.env.NODE_ENV === 'production';
-const DB_PATH = isProduction ? '/opt/data' : __dirname;
+const DB_PATH = isProduction ? '/opt/data' : path.join(__dirname, 'data');
 
-if (isProduction && !fs.existsSync(DB_PATH)) {
-    fs.mkdirSync(DB_PATH, { recursive: true });
+try {
+
+    if (!fs.existsSync(DB_PATH)) {
+        fs.mkdirSync(DB_PATH, { recursive: true });
+        console.log(`📁 Directorio creado: ${DB_PATH}`);
+    }
+
+    process.env.USERS_DB_PATH = path.join(DB_PATH, 'users.db');
+    process.env.ADMIN_DB_PATH = path.join(DB_PATH, 'admin.db');
+    process.env.PRODUCTS_DB_PATH = path.join(DB_PATH, 'products.db');
+    process.env.CART_DB_PATH = path.join(DB_PATH, 'cart.db');
+
+    console.log('💾 Rutas de bases de datos configuradas:');
+    console.log(`   📍 Users DB: ${process.env.USERS_DB_PATH}`);
+    console.log(`   📍 Admin DB: ${process.env.ADMIN_DB_PATH}`);
+    console.log(`   📍 Products DB: ${process.env.PRODUCTS_DB_PATH}`);
+    console.log(`   📍 Cart DB: ${process.env.CART_DB_PATH}`);
+
+} catch (error) {
+    console.error('❌ Error creando directorios:', error);
+    process.exit(1);
 }
 
-process.env.USERS_DB_PATH = path.join(DB_PATH, 'users.db');
-process.env.ADMIN_DB_PATH = path.join(DB_PATH, 'admin.db');
-process.env.PRODUCTS_DB_PATH = path.join(DB_PATH, 'products.db');
-process.env.CART_DB_PATH = path.join(DB_PATH, 'cart.db');
-
-initializeDatabase();
-initializeAdminDatabase();
-initializeProductsDatabase();
-initializeCartDatabase();
+try {
+    initializeDatabase();
+    initializeAdminDatabase();
+    initializeProductsDatabase();
+    initializeCartDatabase();
+} catch (error) {
+    console.error('❌ Error inicializando bases de datos:', error);
+    process.exit(1);
+}
 
 const app = express();
 app.set("port", process.env.PORT || 10000);
@@ -46,7 +65,9 @@ app.use((req, res, next) => {
     const allowedOrigins = [
         'https://tienda-de-panes.onrender.com',
         'http://localhost:4000',
-        'http://localhost:10000'
+        'http://localhost:10000',
+        'http://127.0.0.1:4000',
+        'http://127.0.0.1:10000'
     ];
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
@@ -99,12 +120,37 @@ app.use((req, res) => {
     res.status(404).sendFile(__dirname + "/paginas/404.html");
 });
 
-app.listen(app.get("port"), '0.0.0.0', () => {
+app.use((err, req, res, next) => {
+    console.error('❌ Error global:', err);
+    res.status(500).json({ 
+        success: false, 
+        error: 'Error interno del servidor' 
+    });
+});
+
+const server = app.listen(app.get("port"), '0.0.0.0', () => {
     console.log('\n' + '='.repeat(60));
     console.log('🚀 SERVIDOR CORRIENDO EN:');
     console.log(`📍 LOCAL: http://localhost:${app.get("port")}`);
     if (isProduction) {
         console.log(`📍 RENDER: https://tienda-de-panes.onrender.com`);
+        console.log(`📍 DISCO PERSISTENTE: ${DB_PATH}`);
     }
     console.log('='.repeat(60) + '\n');
+});
+
+process.on('SIGTERM', () => {
+    console.log('🛑 Recibida señal SIGTERM, cerrando servidor...');
+    server.close(() => {
+        console.log('✅ Servidor cerrado correctamente');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('🛑 Recibida señal SIGINT, cerrando servidor...');
+    server.close(() => {
+        console.log('✅ Servidor cerrado correctamente');
+        process.exit(0);
+    });
 });
