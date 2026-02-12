@@ -25,7 +25,6 @@
             </div>
         </div>
 
-
         <div class="store-search-section">
             <div class="store-search-header">
                 <h3>
@@ -52,16 +51,13 @@
             </div>
         </div>
         
-
         <div id="products-container" class="store-products-grid"></div>
     </div>
-
 
     <button id="cart-floating-btn" class="cart-floating-btn">
         🛒
         <span id="cart-count" class="cart-count">0</span>
     </button>
-
 
     <div id="cart-modal" class="cart-modal">
         <div class="cart-modal-content">
@@ -86,9 +82,14 @@
                     <span class="cart-total-label">TOTAL:</span>
                     <span class="cart-total-amount" id="modal-cart-total">0.00</span>
                 </div>
-                <button id="modal-clear-cart-btn" class="modal-clear-cart-btn">
-                    🗑️ VACIAR CARRITO
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="modal-clear-cart-btn" class="modal-clear-cart-btn">
+                        🗑️ VACIAR
+                    </button>
+                    <button id="pay-btn" class="pay-btn">
+                        💰 PAGAR
+                    </button>
+                </div>
             </div>
         </div>
     </div>
