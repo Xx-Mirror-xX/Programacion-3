@@ -19,38 +19,39 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isProduction = process.env.NODE_ENV === 'production';
-const DB_PATH = isProduction ? '/opt/data' : path.join(__dirname, 'data');
+const DB_PATH = isProduction ? '/tmp/data' : path.join(__dirname, 'data');
 
 try {
-
     if (!fs.existsSync(DB_PATH)) {
         fs.mkdirSync(DB_PATH, { recursive: true });
-        console.log(`📁 Directorio creado: ${DB_PATH}`);
+        console.log(`✅ Directorio creado (GRATIS): ${DB_PATH}`);
+    } else {
+        console.log(`✅ Directorio existente: ${DB_PATH}`);
     }
-
-    process.env.USERS_DB_PATH = path.join(DB_PATH, 'users.db');
-    process.env.ADMIN_DB_PATH = path.join(DB_PATH, 'admin.db');
-    process.env.PRODUCTS_DB_PATH = path.join(DB_PATH, 'products.db');
-    process.env.CART_DB_PATH = path.join(DB_PATH, 'cart.db');
-
-    console.log('💾 Rutas de bases de datos configuradas:');
-    console.log(`   📍 Users DB: ${process.env.USERS_DB_PATH}`);
-    console.log(`   📍 Admin DB: ${process.env.ADMIN_DB_PATH}`);
-    console.log(`   📍 Products DB: ${process.env.PRODUCTS_DB_PATH}`);
-    console.log(`   📍 Cart DB: ${process.env.CART_DB_PATH}`);
-
 } catch (error) {
-    console.error('❌ Error creando directorios:', error);
+    console.error('❌ Error creando directorio:', error.message);
     process.exit(1);
 }
+
+process.env.USERS_DB_PATH = path.join(DB_PATH, 'users.db');
+process.env.ADMIN_DB_PATH = path.join(DB_PATH, 'admin.db');
+process.env.PRODUCTS_DB_PATH = path.join(DB_PATH, 'products.db');
+process.env.CART_DB_PATH = path.join(DB_PATH, 'cart.db');
+
+console.log('\n💾 BASES DE DATOS (RENDER GRATIS):');
+console.log(`   📍 Users DB: ${process.env.USERS_DB_PATH}`);
+console.log(`   📍 Admin DB: ${process.env.ADMIN_DB_PATH}`);
+console.log(`   📍 Products DB: ${process.env.PRODUCTS_DB_PATH}`);
+console.log(`   📍 Cart DB: ${process.env.CART_DB_PATH}\n`);
 
 try {
     initializeDatabase();
     initializeAdminDatabase();
     initializeProductsDatabase();
     initializeCartDatabase();
+    console.log('✅ Todas las bases de datos inicializadas correctamente\n');
 } catch (error) {
-    console.error('❌ Error inicializando bases de datos:', error);
+    console.error('❌ Error inicializando bases de datos:', error.message);
     process.exit(1);
 }
 
@@ -64,6 +65,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
     const allowedOrigins = [
         'https://tienda-de-panes.onrender.com',
+        `https://${process.env.RENDER_EXTERNAL_HOSTNAME}`,
         'http://localhost:4000',
         'http://localhost:10000',
         'http://127.0.0.1:4000',
@@ -105,6 +107,7 @@ app.put("/api/cart/update", verifyToken, cartMethods.updateQuantity);
 app.delete("/api/cart/item/:itemId", verifyToken, cartMethods.removeItem);
 app.delete("/api/cart/clear", verifyToken, cartMethods.clearCart);
 
+
 app.get("/admin", verifyToken, (req, res) => res.sendFile(__dirname + "/paginas/admin/admin.html"));
 app.get("/adminvip", verifyAdminToken, (req, res) => res.sendFile(__dirname + "/paginas/adminvip/adminvip.html"));
 
@@ -130,11 +133,12 @@ app.use((err, req, res, next) => {
 
 const server = app.listen(app.get("port"), '0.0.0.0', () => {
     console.log('\n' + '='.repeat(60));
-    console.log('🚀 SERVIDOR CORRIENDO EN:');
-    console.log(`📍 LOCAL: http://localhost:${app.get("port")}`);
+    console.log('🚀 RENDER GRATIS - SERVIDOR ACTIVO');
+    console.log('='.repeat(60));
+    console.log(`📍 URL LOCAL: http://localhost:${app.get("port")}`);
     if (isProduction) {
-        console.log(`📍 RENDER: https://tienda-de-panes.onrender.com`);
-        console.log(`📍 DISCO PERSISTENTE: ${DB_PATH}`);
+        console.log(`📍 URL RENDER: https://${process.env.RENDER_EXTERNAL_HOSTNAME || 'tienda-de-panes.onrender.com'}`);
+        console.log(`📍 BD TEMPORAL: ${DB_PATH} (GRATIS - datos temporales)`);
     }
     console.log('='.repeat(60) + '\n');
 });
