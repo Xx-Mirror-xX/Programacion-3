@@ -8,11 +8,6 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
-if (!JWT_SECRET) {
-    console.error('\n❌ ERROR CRÍTICO: JWT_SECRET no está definido en el archivo .env');
-    process.exit(1);
-}
-
 export const methods = {
     async register(req, res) {
         const { user, email, password } = req.body;
@@ -34,6 +29,7 @@ export const methods = {
                 [user, email, hashedPassword],
                 function(err) {
                     if (err) {
+                        console.error(err);
                         if (err.message.includes('UNIQUE constraint failed')) {
                             if (err.message.includes('username')) {
                                 return res.status(400).json({ 
@@ -61,6 +57,7 @@ export const methods = {
                 }
             );
         } catch (error) {
+            console.error(error);
             res.status(500).json({ 
                 success: false, 
                 error: "Error en el servidor" 
@@ -85,6 +82,7 @@ export const methods = {
             [user, user],
             async (err, row) => {
                 if (err) {
+                    console.error(err);
                     return res.status(500).json({ 
                         success: false, 
                         error: "Error en el servidor" 
@@ -120,7 +118,7 @@ export const methods = {
                 
                 res.cookie('token', token, {
                     httpOnly: true,
-                    secure: false,
+                    secure: process.env.NODE_ENV === 'production',
                     sameSite: 'lax',
                     maxAge: 24 * 60 * 60 * 1000
                 });
