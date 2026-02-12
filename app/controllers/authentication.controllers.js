@@ -29,7 +29,7 @@ export const methods = {
                 [user, email, hashedPassword],
                 function(err) {
                     if (err) {
-                        console.error(err);
+                        console.error('Error en registro:', err.message);
                         if (err.message.includes('UNIQUE constraint failed')) {
                             if (err.message.includes('username')) {
                                 return res.status(400).json({ 
@@ -57,7 +57,7 @@ export const methods = {
                 }
             );
         } catch (error) {
-            console.error(error);
+            console.error('Error en registro:', error.message);
             res.status(500).json({ 
                 success: false, 
                 error: "Error en el servidor" 
@@ -77,65 +77,73 @@ export const methods = {
 
         const db = getDB();
         
-        db.get(
-            "SELECT * FROM users WHERE username = ? OR email = ?",
-            [user, user],
-            async (err, row) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).json({ 
-                        success: false, 
-                        error: "Error en el servidor" 
-                    });
-                }
-                
-                if (!row) {
-                    return res.status(401).json({ 
-                        success: false, 
-                        error: "Usuario o contraseña incorrectos" 
-                    });
-                }
-                
-                const validPassword = await bcrypt.compare(password, row.password);
-                
-                if (!validPassword) {
-                    return res.status(401).json({ 
-                        success: false, 
-                        error: "Usuario o contraseña incorrectos" 
-                    });
-                }
-                
-                const token = jwt.sign(
-                    { 
-                        id: row.id, 
-                        username: row.username, 
-                        email: row.email,
-                        type: 'user'
-                    },
-                    JWT_SECRET,
-                    { expiresIn: JWT_EXPIRES_IN }
-                );
-                
-                res.cookie('token', token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'lax',
-                    maxAge: 24 * 60 * 60 * 1000
-                });
-                
-                res.json({ 
-                    success: true, 
-                    message: "Login exitoso",
-                    token,
-                    user: {
-                        id: row.id,
-                        username: row.username,
-                        email: row.email,
-                        type: 'user'
+        try {
+            db.get(
+                "SELECT * FROM users WHERE username = ? OR email = ?",
+                [user, user],
+                async (err, row) => {
+                    if (err) {
+                        console.error('Error en login:', err.message);
+                        return res.status(500).json({ 
+                            success: false, 
+                            error: "Error en el servidor" 
+                        });
                     }
-                });
-            }
-        );
+                    
+                    if (!row) {
+                        return res.status(401).json({ 
+                            success: false, 
+                            error: "Usuario o contraseña incorrectos" 
+                        });
+                    }
+                    
+                    const validPassword = await bcrypt.compare(password, row.password);
+                    
+                    if (!validPassword) {
+                        return res.status(401).json({ 
+                            success: false, 
+                            error: "Usuario o contraseña incorrectos" 
+                        });
+                    }
+                    
+                    const token = jwt.sign(
+                        { 
+                            id: row.id, 
+                            username: row.username, 
+                            email: row.email,
+                            type: 'user'
+                        },
+                        JWT_SECRET,
+                        { expiresIn: JWT_EXPIRES_IN }
+                    );
+                    
+                    res.cookie('token', token, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: 'lax',
+                        maxAge: 24 * 60 * 60 * 1000
+                    });
+                    
+                    res.json({ 
+                        success: true, 
+                        message: "Login exitoso",
+                        token,
+                        user: {
+                            id: row.id,
+                            username: row.username,
+                            email: row.email,
+                            type: 'user'
+                        }
+                    });
+                }
+            );
+        } catch (error) {
+            console.error('Error en login:', error.message);
+            res.status(500).json({ 
+                success: false, 
+                error: "Error en el servidor" 
+            });
+        }
     },
 
     async logout(req, res) {
